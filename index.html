@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ejercicio de Calibración · CAPP UdeSA</title>
+<title>Ejercicio de Estimación · CAPP UdeSA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;0,9..40,800;1,9..40,400&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -394,7 +394,7 @@ function renderHome() {
   }, "Ciencias del Comportamiento · UdeSA"));
 
   const title = el("h1", { style: { color: "var(--text)", fontSize: "36px", margin: "0 0 8px", fontWeight: "800", letterSpacing: "-0.03em", lineHeight: "1.1" } });
-  title.innerHTML = 'Ejercicio de<br><span style="color:var(--accent)">Calibración</span>';
+  title.innerHTML = 'Ejercicio de<br><span style="color:var(--accent)">Estimación</span>';
   box.appendChild(title);
 
   box.appendChild(el("p", {
@@ -440,8 +440,8 @@ function renderStudent() {
     const screen = el("div", { className: "center-screen" });
     const card = el("div", { className: "card-center" });
 
-    card.appendChild(el("h1", { style: { color: "var(--text)", fontSize: "26px", margin: "0 0 4px" } }, "Ejercicio de Calibración"));
-    card.appendChild(el("p", { style: { color: "var(--text-dim)", fontSize: "14px", margin: "0 0 32px" } }, "Estimá rangos para magnitudes difíciles"));
+    card.appendChild(el("h1", { style: { color: "var(--text)", fontSize: "26px", margin: "0 0 4px" } }, "Ejercicio de Estimación"));
+    card.appendChild(el("p", { style: { color: "var(--text-dim)", fontSize: "14px", margin: "0 0 32px" } }, "Estimá rangos!"));
 
     // Name
     const nameGroup = el("div", { style: { marginBottom: "16px" } });
@@ -478,9 +478,9 @@ function renderStudent() {
     const page = el("div", { className: "container" });
 
     const header = el("div", { style: { marginBottom: "24px" } });
-    header.appendChild(el("h1", { style: { color: "var(--text)", fontSize: "22px" } }, "Ejercicio de Calibración"));
+    header.appendChild(el("h1", { style: { color: "var(--text)", fontSize: "22px" } }, "Ejercicio de Estimación"));
     const hint = el("p", { style: { color: "var(--text-dim)", fontSize: "13px", margin: "4px 0 0", lineHeight: "1.5" } });
-    hint.innerHTML = 'Para cada ítem, ingresá un rango MIN–MAX donde creas que está el valor real.<br><span style="color:var(--accent)">Consejo: deberías acertar ~9 de 9 si tu rango es lo bastante amplio.</span>';
+    hint.innerHTML = 'Para cada ítem, ingresá un rango MIN–MAX, de manera que garantice 90% de confianza en el resultado final.<br><span style="color:var(--accent)"></span>';
     header.appendChild(hint);
     page.appendChild(header);
 
