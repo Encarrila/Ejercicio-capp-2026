@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ejercicio de Calibración · CAPP UdeSA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;0,9..40,800;1,9..40,400&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0e17;
+    --card: #111827;
+    --card-hover: #1a2332;
+    --accent: #f59e0b;
+    --accent-dim: #b45309;
+    --accent-glow: rgba(245,158,11,0.15);
+    --green: #10b981;
+    --red: #ef4444;
+    --text: #e5e7eb;
+    --text-dim: #6b7280;
+    --border: #1f2937;
+    --input-bg: #0d1117;
+  }
+
+  body {
+    font-family: 'DM Sans', 'Helvetica Neue', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type="number"] { -moz-appearance: textfield; }
+
+  .container { max-width: 720px; margin: 0 auto; padding: 24px 16px; }
+  .container-wide { max-width: 940px; margin: 0 auto; padding: 24px 20px; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 22px;
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+  }
+
+  .card-center {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 48px 40px;
+    max-width: 460px;
+    width: 100%;
+  }
+
+  .center-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  h1 { font-weight: 700; letter-spacing: -0.02em; }
+  
+  .label {
+    color: var(--text-dim);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .label-sm {
+    color: var(--text-dim);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .input {
+    width: 100%;
+    padding: 12px 14px;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 15px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .input:focus { border-color: var(--accent); }
+
+  .input-sm {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 15px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .input-sm:focus { border-color: var(--accent); }
+
+  .btn-primary {
+    width: 100%;
+    padding: 13px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    letter-spacing: -0.01em;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .btn-primary:hover { background: #fbbf24; transform: translateY(-1px); }
+  .btn-primary:disabled { background: var(--text-dim); cursor: wait; transform: none; }
+
+  .btn-outline {
+    padding: 8px 16px;
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .btn-outline:hover { border-color: var(--accent); }
+
+  .btn-danger {
+    padding: 8px 16px;
+    background: transparent;
+    color: var(--red);
+    border: 1px solid rgba(239,68,68,0.3);
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  .error { color: var(--red); font-size: 13px; margin: 0 0 12px; }
+
+  .q-number {
+    color: var(--accent);
+    font-weight: 700;
+    margin-right: 8px;
+    font-size: 13px;
+    opacity: 0.7;
+  }
+
+  .q-number-sm {
+    color: var(--accent);
+    font-weight: 700;
+    margin-right: 8px;
+    font-size: 12px;
+    opacity: 0.7;
+  }
+
+  /* Presenter bar */
+  .range-bar-track {
+    position: relative;
+    height: 56px;
+    background: var(--input-bg);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+
+  .range-segment {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    transition: all 0.3s;
+  }
+  .range-segment.hit {
+    background: rgba(16,185,129,0.12);
+    border-left: 1px solid rgba(16,185,129,0.3);
+    border-right: 1px solid rgba(16,185,129,0.3);
+  }
+  .range-segment.miss {
+    background: rgba(239,68,68,0.10);
+    border-left: 1px solid rgba(239,68,68,0.25);
+    border-right: 1px solid rgba(239,68,68,0.25);
+  }
+
+  .answer-marker {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    z-index: 10;
+    box-shadow: 0 0 12px var(--accent);
+  }
+
+  .answer-label {
+    position: absolute;
+    top: 4px;
+    transform: translateX(-50%);
+    background: var(--accent);
+    color: #000;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    z-index: 11;
+    white-space: nowrap;
+  }
+
+  .detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .detail-table th {
+    text-align: left;
+    padding: 4px 8px;
+    font-weight: 600;
+    color: var(--text-dim);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .detail-table td {
+    padding: 6px 8px;
+    color: var(--text);
+    border-top: 1px solid var(--border);
+  }
+  .detail-table .right { text-align: right; }
+  .detail-table .center { text-align: center; }
+
+  .score-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 8px;
+  }
+  .score-chip {
+    background: var(--input-bg);
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .clickable { cursor: pointer; }
+  .clickable:hover { border-color: var(--accent-dim); }
+
+  @media (max-width: 500px) {
+    .card-center { padding: 32px 24px; }
+    .container { padding: 16px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ APP ROOT ═══════════════ -->
+<div id="app"></div>
+
+<script>
+// ── Firebase Config ──
+const firebaseConfig = {
+  apiKey: "AIzaSyAJN0Khj5UTyTyb8Gj3qs_FFTlel9a31Ow",
+  authDomain: "ejercicio-capp-206.firebaseapp.com",
+  databaseURL: "https://ejercicio-capp-206-default-rtdb.firebaseio.com",
+  projectId: "ejercicio-capp-206",
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// ── Session code (change for each class) ──
+const SESSION_CODE = "calibracion2025";
+const PRESENTER_CODE = "prof2025";
+
+// ── Questions ──
+const QUESTIONS = [
+  { id: 1, text: "Distancia de la Tierra a la Luna (en km)", answer: 384400, unit: "km", format: "number" },
+  { id: 2, text: "Superficie de la Argentina (en km²)", answer: 2780400, unit: "km²", format: "number" },
+  { id: 3, text: "Año de nacimiento de Cleopatra", answer: -69, unit: "a.C./d.C.", format: "year" },
+  { id: 4, text: "Volumen total de agua del lago Nahuel Huapí (en km³)", answer: 157, unit: "km³", format: "number" },
+  { id: 5, text: "Recaudación mundial de la película Barbie 2023 (en millones de USD)", answer: 1442, unit: "M USD", format: "number" },
+  { id: 6, text: "Población actual de la India (en millones)", answer: 1450, unit: "millones", format: "number" },
+  { id: 7, text: "Largo total de la Gran Muralla China (en km)", answer: 21196, unit: "km", format: "number" },
+  { id: 8, text: "Cantidad de idiomas hablados activamente en el mundo", answer: 7168, unit: "idiomas", format: "number" },
+  { id: 9, text: "Peso del animal terrestre más pesado jamás registrado (en kg)", answer: 12000, unit: "kg", format: "number" },
+];
+
+// ── Helpers ──
+function formatNum(n) {
+  if (n === null || n === undefined || isNaN(n)) return "–";
+  if (n < 0) return Math.abs(n).toLocaleString("es-AR") + " a.C.";
+  return n.toLocaleString("es-AR");
+}
+
+function formatAnswer(q) {
+  if (q.format === "year") return q.answer < 0 ? Math.abs(q.answer) + " a.C." : q.answer + " d.C.";
+  return formatNum(q.answer);
+}
+
+function isHit(q, min, max) {
+  return min <= q.answer && max >= q.answer;
+}
+
+function sanitizeKey(name) {
+  return name.toLowerCase().replace(/[^a-z0-9]/g, "_").replace(/_+/g, "_").substring(0, 60);
+}
+
+function el(tag, attrs, ...children) {
+  const e = document.createElement(tag);
+  if (attrs) {
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === "style" && typeof v === "object") Object.assign(e.style, v);
+      else if (k.startsWith("on")) e.addEventListener(k.slice(2).toLowerCase(), v);
+      else if (k === "className") e.className = v;
+      else if (k === "innerHTML") e.innerHTML = v;
+      else e.setAttribute(k, v);
+    }
+  }
+  for (const c of children) {
+    if (typeof c === "string") e.appendChild(document.createTextNode(c));
+    else if (c) e.appendChild(c);
+  }
+  return e;
+}
+
+// ── Firebase helpers ──
+function saveResponse(name, answers) {
+  const key = sanitizeKey(name);
+  return db.ref(`sessions/${SESSION_CODE}/responses/${key}`).set({
+    name: name,
+    answers: answers,
+    ts: Date.now()
+  });
+}
+
+function listenResponses(callback) {
+  db.ref(`sessions/${SESSION_CODE}/responses`).on("value", (snap) => {
+    const val = snap.val();
+    if (!val) { callback([]); return; }
+    callback(Object.values(val));
+  });
+}
+
+function clearResponses() {
+  return db.ref(`sessions/${SESSION_CODE}/responses`).remove();
+}
+
+// ══════════════════════════════════════════
+// ROUTER
+// ══════════════════════════════════════════
+const app = document.getElementById("app");
+
+function route() {
+  const hash = window.location.hash.replace("#", "").toLowerCase();
+  app.innerHTML = "";
+  if (hash === "alumno") renderStudent();
+  else if (hash === "presentador") renderPresenter();
+  else renderHome();
+}
+
+window.addEventListener("hashchange", route);
+
+// ══════════════════════════════════════════
+// HOME
+// ══════════════════════════════════════════
+function renderHome() {
+  const wrapper = el("div", { className: "center-screen" });
+  const box = el("div", { style: { textAlign: "center", maxWidth: "480px" } });
+
+  box.appendChild(el("div", {
+    style: { fontSize: "13px", color: "var(--accent)", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "12px" }
+  }, "Ciencias del Comportamiento · UdeSA"));
+
+  const title = el("h1", { style: { color: "var(--text)", fontSize: "36px", margin: "0 0 8px", fontWeight: "800", letterSpacing: "-0.03em", lineHeight: "1.1" } });
+  title.innerHTML = 'Ejercicio de<br><span style="color:var(--accent)">Calibración</span>';
+  box.appendChild(title);
+
+  box.appendChild(el("p", {
+    style: { color: "var(--text-dim)", fontSize: "15px", margin: "0 0 40px", lineHeight: "1.5" }
+  }, "¿Qué tan bien calibradas están tus estimaciones?"));
+
+  const btns = el("div", { style: { display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap" } });
+
+  const btnStudent = el("button", {
+    className: "btn-primary",
+    style: { width: "auto", padding: "16px 36px", fontSize: "16px", borderRadius: "10px" },
+    onClick: () => window.location.hash = "alumno"
+  }, "Soy alumno");
+
+  const btnPresenter = el("button", {
+    className: "btn-outline",
+    style: { padding: "16px 36px", fontSize: "16px", fontWeight: "700", borderRadius: "10px" },
+    onClick: () => window.location.hash = "presentador"
+  }, "Soy presentador");
+
+  btns.appendChild(btnStudent);
+  btns.appendChild(btnPresenter);
+  box.appendChild(btns);
+  wrapper.appendChild(box);
+  app.appendChild(wrapper);
+}
+
+// ══════════════════════════════════════════
+// STUDENT VIEW
+// ══════════════════════════════════════════
+function renderStudent() {
+  const wrapper = el("div");
+  let state = { phase: "login", name: "", code: "", answers: QUESTIONS.map(() => ({ min: "", max: "" })), error: "" };
+
+  function render() {
+    wrapper.innerHTML = "";
+    if (state.phase === "login") renderLogin();
+    else if (state.phase === "form") renderForm();
+    else renderDone();
+  }
+
+  function renderLogin() {
+    const screen = el("div", { className: "center-screen" });
+    const card = el("div", { className: "card-center" });
+
+    card.appendChild(el("h1", { style: { color: "var(--text)", fontSize: "26px", margin: "0 0 4px" } }, "Ejercicio de Calibración"));
+    card.appendChild(el("p", { style: { color: "var(--text-dim)", fontSize: "14px", margin: "0 0 32px" } }, "Estimá rangos para magnitudes difíciles"));
+
+    // Name
+    const nameGroup = el("div", { style: { marginBottom: "16px" } });
+    nameGroup.appendChild(el("label", { className: "label" }, "Tu nombre"));
+    const nameInput = el("input", { className: "input", placeholder: "Nombre y apellido", value: state.name });
+    nameInput.addEventListener("input", e => state.name = e.target.value);
+    nameGroup.appendChild(nameInput);
+    card.appendChild(nameGroup);
+
+    // Code
+    const codeGroup = el("div", { style: { marginBottom: "24px" } });
+    codeGroup.appendChild(el("label", { className: "label" }, "Código de clase"));
+    const codeInput = el("input", { className: "input", placeholder: "Ingresá el código", value: state.code });
+    codeInput.addEventListener("input", e => state.code = e.target.value);
+    codeGroup.appendChild(codeInput);
+    card.appendChild(codeGroup);
+
+    if (state.error) card.appendChild(el("p", { className: "error" }, state.error));
+
+    const btn = el("button", { className: "btn-primary", onClick: () => {
+      if (!state.name.trim()) { state.error = "Ingresá tu nombre"; render(); return; }
+      if (state.code.trim().toLowerCase() !== SESSION_CODE) { state.error = "Código incorrecto"; render(); return; }
+      state.error = "";
+      state.phase = "form";
+      render();
+    }}, "Comenzar →");
+    card.appendChild(btn);
+
+    screen.appendChild(card);
+    wrapper.appendChild(screen);
+  }
+
+  function renderForm() {
+    const page = el("div", { className: "container" });
+
+    const header = el("div", { style: { marginBottom: "24px" } });
+    header.appendChild(el("h1", { style: { color: "var(--text)", fontSize: "22px" } }, "Ejercicio de Calibración"));
+    const hint = el("p", { style: { color: "var(--text-dim)", fontSize: "13px", margin: "4px 0 0", lineHeight: "1.5" } });
+    hint.innerHTML = 'Para cada ítem, ingresá un rango MIN–MAX donde creas que está el valor real.<br><span style="color:var(--accent)">Consejo: deberías acertar ~9 de 9 si tu rango es lo bastante amplio.</span>';
+    header.appendChild(hint);
+    page.appendChild(header);
+
+    QUESTIONS.forEach((q, i) => {
+      const card = el("div", { className: "card" });
+      const qText = el("p", { style: { color: "var(--text)", fontSize: "15px", margin: "0 0 14px", fontWeight: "500", lineHeight: "1.4" } });
+      qText.innerHTML = `<span class="q-number">${String(i + 1).padStart(2, "0")}</span>${q.text}`;
+      card.appendChild(qText);
+
+      const row = el("div", { style: { display: "flex", gap: "12px", alignItems: "center" } });
+
+      const minDiv = el("div", { style: { flex: "1" } });
+      minDiv.appendChild(el("label", { className: "label-sm" }, "Mínimo"));
+      const minInput = el("input", { type: "number", className: "input-sm", value: state.answers[i].min });
+      minInput.addEventListener("input", e => state.answers[i].min = e.target.value);
+      minDiv.appendChild(minInput);
+
+      const sep = el("span", { style: { color: "var(--text-dim)", fontSize: "18px", marginTop: "18px" } }, "—");
+
+      const maxDiv = el("div", { style: { flex: "1" } });
+      maxDiv.appendChild(el("label", { className: "label-sm" }, "Máximo"));
+      const maxInput = el("input", { type: "number", className: "input-sm", value: state.answers[i].max });
+      maxInput.addEventListener("input", e => state.answers[i].max = e.target.value);
+      maxDiv.appendChild(maxInput);
+
+      row.appendChild(minDiv);
+      row.appendChild(sep);
+      row.appendChild(maxDiv);
+      card.appendChild(row);
+      page.appendChild(card);
+    });
+
+    if (state.error) page.appendChild(el("p", { className: "error", style: { textAlign: "center" } }, state.error));
+
+    const submitBtn = el("button", { className: "btn-primary", style: { marginTop: "8px", marginBottom: "40px", fontSize: "16px", padding: "14px", borderRadius: "10px" }, onClick: async () => {
+      for (let i = 0; i < QUESTIONS.length; i++) {
+        if (state.answers[i].min === "" || state.answers[i].max === "") {
+          state.error = `Completá MIN y MAX de la pregunta ${i + 1}`;
+          render(); return;
+        }
+        const min = Number(state.answers[i].min);
+        const max = Number(state.answers[i].max);
+        if (isNaN(min) || isNaN(max)) { state.error = `Valores inválidos en pregunta ${i + 1}`; render(); return; }
+        if (min > max) { state.error = `En la pregunta ${i + 1}, MIN debe ser ≤ MAX`; render(); return; }
+      }
+      state.error = "";
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Enviando...";
+      try {
+        const parsed = state.answers.map(a => ({ min: Number(a.min), max: Number(a.max) }));
+        await saveResponse(state.name.trim(), parsed);
+        state.phase = "done";
+        state.parsedAnswers = parsed;
+        render();
+      } catch (err) {
+        state.error = "Error al guardar. Intentá de nuevo.";
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Enviar respuestas";
+        render();
+      }
+    }}, "Enviar respuestas");
+    page.appendChild(submitBtn);
+    wrapper.appendChild(page);
+  }
+
+  function renderDone() {
+    const hits = QUESTIONS.filter((q, i) => isHit(q, state.parsedAnswers[i].min, state.parsedAnswers[i].max)).length;
+    const screen = el("div", { className: "center-screen" });
+    const card = el("div", { className: "card-center", style: { textAlign: "center" } });
+
+    card.appendChild(el("div", { style: { fontSize: "56px", marginBottom: "16px" } }, "✓"));
+    card.appendChild(el("h2", { style: { color: "var(--accent)", fontSize: "28px", margin: "0 0 12px", fontWeight: "700", letterSpacing: "-0.02em" } }, "¡Respuestas enviadas!"));
+    card.appendChild(el("p", { style: { color: "var(--text)", fontSize: "18px", margin: "0 0 8px" } }, `Gracias, ${state.name}`));
+
+    const scoreColor = hits >= 7 ? "var(--green)" : hits >= 4 ? "var(--accent)" : "var(--red)";
+    const scoreP = el("p", { style: { color: "var(--text-dim)", fontSize: "15px", margin: "0" } });
+    scoreP.innerHTML = `Acertaste <span style="color:${scoreColor};font-weight:700">${hits}</span> de ${QUESTIONS.length} preguntas`;
+    card.appendChild(scoreP);
+
+    card.appendChild(el("p", { style: { color: "var(--text-dim)", fontSize: "13px", marginTop: "24px", opacity: "0.6" } }, "Esperá a que el profesor muestre los resultados grupales"));
+
+    screen.appendChild(card);
+    wrapper.appendChild(screen);
+  }
+
+  render();
+  app.appendChild(wrapper);
+}
+
+// ══════════════════════════════════════════
+// PRESENTER VIEW
+// ══════════════════════════════════════════
+function renderPresenter() {
+  const wrapper = el("div");
+  let authenticated = false;
+  let presenterPass = "";
+  let presenterError = "";
+  let responses = [];
+  let expandedId = null;
+  let showSummary = false;
+
+  function renderLogin() {
+    wrapper.innerHTML = "";
+    const screen = el("div", { className: "center-screen" });
+    const card = el("div", { className: "card-center" });
+
+    card.appendChild(el("h1", { style: { color: "var(--text)", fontSize: "26px", margin: "0 0 4px" } }, "Vista Presentador"));
+    card.appendChild(el("p", { style: { color: "var(--text-dim)", fontSize: "14px", margin: "0 0 32px" } }, "Ingresá el código de presentador"));
+
+    const codeGroup = el("div", { style: { marginBottom: "24px" } });
+    codeGroup.appendChild(el("label", { className: "label" }, "Código de presentador"));
+    const codeInput = el("input", { className: "input", type: "password", placeholder: "Código", value: presenterPass });
+    codeInput.addEventListener("input", e => presenterPass = e.target.value);
+    codeInput.addEventListener("keydown", e => { if (e.key === "Enter") tryLogin(); });
+    codeGroup.appendChild(codeInput);
+    card.appendChild(codeGroup);
+
+    if (presenterError) card.appendChild(el("p", { className: "error" }, presenterError));
+
+    card.appendChild(el("button", { className: "btn-primary", onClick: tryLogin }, "Entrar →"));
+
+    screen.appendChild(card);
+    wrapper.appendChild(screen);
+    setTimeout(() => codeInput.focus(), 50);
+  }
+
+  function tryLogin() {
+    if (presenterPass.trim().toLowerCase() === PRESENTER_CODE) {
+      authenticated = true;
+      presenterError = "";
+      startDashboard();
+    } else {
+      presenterError = "Código incorrecto";
+      renderLogin();
+    }
+  }
+
+  function startDashboard() {
+    listenResponses((data) => {
+      responses = data;
+      render();
+    });
+    render();
+  }
+
+  function render() {
+    wrapper.innerHTML = "";
+    const container = el("div", { className: "container-wide" });
+
+    const totalStudents = responses.length;
+    const studentScores = responses.map(r => {
+      const hits = QUESTIONS.filter((q, i) => isHit(q, r.answers[i].min, r.answers[i].max)).length;
+      return { name: r.name, hits, pct: Math.round((hits / QUESTIONS.length) * 100) };
+    });
+    const avgHits = totalStudents > 0 ? (studentScores.reduce((s, x) => s + x.hits, 0) / totalStudents).toFixed(1) : 0;
+
+    // Header
+    const headerRow = el("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px", flexWrap: "wrap", gap: "12px" } });
+    const headerLeft = el("div");
+    headerLeft.appendChild(el("h1", { style: { color: "var(--text)", fontSize: "26px" } }, "Vista Presentador"));
+    headerLeft.appendChild(el("p", { style: { color: "var(--text-dim)", fontSize: "13px", margin: "4px 0 0" } },
+      `${totalStudents} respuesta${totalStudents !== 1 ? "s" : ""} · promedio ${avgHits}/${QUESTIONS.length} aciertos`));
+    headerRow.appendChild(headerLeft);
+
+    const headerBtns = el("div", { style: { display: "flex", gap: "8px", flexWrap: "wrap" } });
+
+    const summaryBtn = el("button", {
+      className: showSummary ? "btn-primary" : "btn-outline",
+      style: showSummary ? { width: "auto", padding: "8px 16px", fontSize: "13px", borderRadius: "6px" } : {},
+      onClick: () => { showSummary = !showSummary; render(); }
+    }, showSummary ? "Ocultar resumen" : "Resumen");
+    headerBtns.appendChild(summaryBtn);
+
+    headerBtns.appendChild(el("button", { className: "btn-outline", onClick: () => render() }, "↻ Refrescar"));
+
+    headerBtns.appendChild(el("button", { className: "btn-danger", onClick: async () => {
+      if (confirm("¿Borrar todas las respuestas?")) { await clearResponses(); }
+    }}, "Limpiar"));
+
+    headerRow.appendChild(headerBtns);
+    container.appendChild(headerRow);
+
+    // Summary panel
+    if (showSummary && totalStudents > 0) {
+      const panel = el("div", { className: "card", style: { marginBottom: "20px", padding: "20px 24px" } });
+      panel.appendChild(el("h3", { style: { color: "var(--accent)", fontSize: "15px", margin: "0 0 12px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.05em" } }, "Resumen por alumno"));
+
+      const grid = el("div", { className: "score-grid" });
+      studentScores.sort((a, b) => b.hits - a.hits).forEach(s => {
+        const scoreColor = s.pct >= 70 ? "var(--green)" : s.pct >= 40 ? "var(--accent)" : "var(--red)";
+        const chip = el("div", { className: "score-chip" });
+        chip.appendChild(el("span", { style: { color: "var(--text)", fontSize: "14px" } }, s.name));
+        chip.appendChild(el("span", { style: { color: scoreColor, fontWeight: "700", fontSize: "14px" } }, `${s.hits}/9`));
+        grid.appendChild(chip);
+      });
+      panel.appendChild(grid);
+
+      const insight = el("p", { style: { color: "var(--text-dim)", fontSize: "13px", margin: "14px 0 0", lineHeight: "1.5" } });
+      insight.innerHTML = `Si estuvieras bien calibrado, deberías acertar 9/9. El promedio del grupo es <strong style="color:var(--accent)">${avgHits}/9</strong> — evidencia del <strong style="color:var(--accent)">sesgo de sobreconfianza</strong>.`;
+      panel.appendChild(insight);
+
+      container.appendChild(panel);
+    }
+
+    // Empty state
+    if (totalStudents === 0) {
+      const empty = el("div", { style: { textAlign: "center", padding: "60px 20px" } });
+      empty.appendChild(el("div", { style: { fontSize: "48px", marginBottom: "12px", opacity: "0.3" } }, "📊"));
+      empty.appendChild(el("p", { style: { color: "var(--text-dim)", fontSize: "16px" } }, "Aún no hay respuestas"));
+      const codeP = el("p", { style: { color: "var(--text-dim)", fontSize: "13px" } });
+      codeP.innerHTML = `Código de clase: <strong style="color:var(--accent)">${SESSION_CODE}</strong>`;
+      empty.appendChild(codeP);
+      container.appendChild(empty);
+      wrapper.appendChild(container);
+      return;
+    }
+
+    // Question bars
+    QUESTIONS.forEach(q => {
+      const qIdx = q.id - 1;
+      const ranges = responses.map(r => r.answers[qIdx]);
+      const allVals = ranges.flatMap(r => [r.min, r.max]).concat([q.answer]);
+      const globalMin = Math.min(...allVals);
+      const globalMax = Math.max(...allVals);
+      const span = globalMax - globalMin || 1;
+
+      const hits = ranges.filter(r => isHit(q, r.min, r.max)).length;
+      const pct = Math.round((hits / totalStudents) * 100);
+      const isExpanded = expandedId === q.id;
+
+      const card = el("div", { className: "card clickable", onClick: () => { expandedId = isExpanded ? null : q.id; render(); } });
+
+      // Question header row
+      const qHeader = el("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "14px" } });
+      const qText = el("p", { style: { color: "var(--text)", fontSize: "14px", margin: "0", fontWeight: "500", flex: "1", lineHeight: "1.4" } });
+      qText.innerHTML = `<span class="q-number-sm">${String(q.id).padStart(2, "0")}</span>${q.text}`;
+      qHeader.appendChild(qText);
+
+      const scoreBox = el("div", { style: { textAlign: "right", marginLeft: "16px", flexShrink: "0" } });
+      const scoreColor = pct >= 70 ? "var(--green)" : pct >= 40 ? "var(--accent)" : "var(--red)";
+      scoreBox.appendChild(el("div", { style: { fontSize: "28px", fontWeight: "800", color: scoreColor, lineHeight: "1", letterSpacing: "-0.03em" } }, `${pct}%`));
+      scoreBox.appendChild(el("div", { style: { fontSize: "11px", color: "var(--text-dim)", marginTop: "2px" } }, `${hits}/${totalStudents} acertaron`));
+      qHeader.appendChild(scoreBox);
+      card.appendChild(qHeader);
+
+      // Bar
+      const track = el("div", { className: "range-bar-track" });
+      ranges.forEach(r => {
+        const left = ((r.min - globalMin) / span) * 100;
+        const width = ((r.max - r.min) / span) * 100;
+        const hit = isHit(q, r.min, r.max);
+        const seg = el("div", {
+          className: `range-segment ${hit ? "hit" : "miss"}`,
+          style: { left: left + "%", width: Math.max(width, 0.5) + "%" }
+        });
+        track.appendChild(seg);
+      });
+
+      // Answer marker
+      const answerPos = ((q.answer - globalMin) / span) * 100;
+      track.appendChild(el("div", { className: "answer-marker", style: { left: answerPos + "%" } }));
+      track.appendChild(el("div", { className: "answer-label", style: { left: answerPos + "%" } }, formatAnswer(q)));
+      card.appendChild(track);
+
+      // Scale
+      const scale = el("div", { style: { display: "flex", justifyContent: "space-between", fontSize: "11px", color: "var(--text-dim)" } });
+      scale.appendChild(el("span", {}, formatNum(globalMin)));
+      scale.appendChild(el("span", {}, formatNum(globalMax)));
+      card.appendChild(scale);
+
+      // Expanded detail
+      if (isExpanded) {
+        const detail = el("div", { style: { marginTop: "16px", borderTop: "1px solid var(--border)", paddingTop: "12px" } });
+        const table = el("table", { className: "detail-table" });
+        const thead = el("thead");
+        const tr = el("tr");
+        ["Alumno", "Min", "Max", "Ancho", "¿Acertó?"].forEach((h, hi) => {
+          const cls = hi === 0 ? "" : hi === 4 ? "center" : "right";
+          tr.appendChild(el("th", { className: cls, style: hi === 0 ? {} : { textAlign: cls } }, h));
+        });
+        thead.appendChild(tr);
+        table.appendChild(thead);
+
+        const tbody = el("tbody");
+        responses.forEach(r => {
+          const a = r.answers[qIdx];
+          const hit = isHit(q, a.min, a.max);
+          const row = el("tr");
+          row.appendChild(el("td", {}, r.name));
+          row.appendChild(el("td", { className: "right", style: { textAlign: "right" } }, formatNum(a.min)));
+          row.appendChild(el("td", { className: "right", style: { textAlign: "right" } }, formatNum(a.max)));
+          row.appendChild(el("td", { className: "right", style: { textAlign: "right", color: "var(--text-dim)" } }, formatNum(a.max - a.min)));
+          row.appendChild(el("td", { className: "center", style: { textAlign: "center", color: hit ? "var(--green)" : "var(--red)", fontWeight: "700" } }, hit ? "✓" : "✗"));
+          tbody.appendChild(row);
+        });
+        table.appendChild(tbody);
+        detail.appendChild(table);
+        card.appendChild(detail);
+      }
+
+      container.appendChild(card);
+    });
+
+    wrapper.appendChild(container);
+  }
+
+  // Start with login
+  renderLogin();
+  app.appendChild(wrapper);
+}
+
+// ── Init ──
+route();
+</script>
+</body>
+</html>
