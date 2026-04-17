@@ -1,0 +1,32 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "pmSessions": {
+      ".read": true,
+      ".write": true,
+      "$sessionId": {
+        ".read": true,
+        ".write": true,
+        "meta": {
+          ".read": true,
+          ".write": true
+        },
+        "teams": {
+          ".read": true,
+          ".write": true,
+          "$teamId": {
+            ".read": true,
+            ".write": true,
+            "rounds": {
+              "$roundId": {
+                ".read": true,
+                ".write": true
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
